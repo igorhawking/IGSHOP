@@ -7,6 +7,9 @@ import {
   TouchableOpacity,
   FlatList,
   Platform,
+  ViewStyle,
+  ImageStyle,
+  TextStyle,
 } from "react-native";
 import { router } from "expo-router";
 import { Image } from "expo-image";
@@ -24,19 +27,9 @@ import Animated, {
 } from "react-native-reanimated";
 import { Pizza, ShoppingBag, ScanLine, Briefcase } from "lucide-react-native";
 
-const { width, height } = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 
-interface OnboardingSlide {
-  id: string;
-  title: string;
-  description: string;
-  image: string;
-  color: string;
-  icon: React.ReactNode;
-  animationDelay: number;
-}
-
-const slides: OnboardingSlide[] = [
+const slides = [
   {
     id: "1",
     title: "Entregas rápidas de comida",
@@ -80,16 +73,25 @@ const slides: OnboardingSlide[] = [
   },
 ];
 
-export default function OnboardingScreen() {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const flatListRef = useRef<FlatList>(null);
+// Define the type for the slide item
+type SlideItem = {
+  id: string;
+  title: string;
+  description: string;
+  image: string;
+  color: string;
+  icon: JSX.Element;
+  animationDelay: number;
+};
 
-  // Animation values
+const OnboardingScreen = () => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const flatListRef = useRef<FlatList<SlideItem>>(null);
+
   const imageAnimation = useSharedValue(0);
   const textAnimation = useSharedValue(0);
 
   useEffect(() => {
-    // Reset and start animations when slide changes
     imageAnimation.value = 0;
     textAnimation.value = 0;
 
@@ -103,90 +105,75 @@ export default function OnboardingScreen() {
       withTiming(1, {
         duration: 600,
         easing: Easing.out(Easing.ease),
-      }),
+      })
     );
   }, [currentIndex]);
 
   const imageAnimatedStyle = useAnimatedStyle(() => {
-    const scale = interpolate(
-      imageAnimation.value,
-      [0, 1],
-      [0.8, 1],
-      Extrapolate.CLAMP,
-    );
-
-    const opacity = imageAnimation.value;
-
     return {
-      opacity,
-      transform: [{ scale }],
+      opacity: imageAnimation.value,
+      transform: [
+        {
+          scale: interpolate(
+            imageAnimation.value,
+            [0, 1],
+            [0.8, 1],
+            "clamp"
+          ),
+        },
+      ],
     };
   });
 
   const textAnimatedStyle = useAnimatedStyle(() => {
-    const translateY = interpolate(
-      textAnimation.value,
-      [0, 1],
-      [20, 0],
-      Extrapolate.CLAMP,
-    );
-
-    const opacity = textAnimation.value;
-
     return {
-      opacity,
-      transform: [{ translateY }],
+      opacity: textAnimation.value,
+      transform: [
+        {
+          translateY: interpolate(
+            textAnimation.value,
+            [0, 1],
+            [20, 0],
+            "clamp"
+          ),
+        },
+      ],
     };
   });
 
-  const renderItem = ({ item }: { item: OnboardingSlide }) => {
-    return (
-      <View style={[styles.slide, { width }]}>
-        <Animated.View style={[imageAnimatedStyle, styles.iconContainer]}>
-          {item.icon}
-        </Animated.View>
+  const renderItem = ({ item }: { item: SlideItem }) => (
+    <View style={StyleSheet.flatten([styles.slide, { width }]) as ViewStyle}>
+      <Animated.View style={[imageAnimatedStyle as ViewStyle, styles.iconContainer]}>
+        {item.icon}
+      </Animated.View>
 
-        <Animated.View
-          style={[
-            styles.imageContainer,
-            { backgroundColor: item.color + "20" },
-            imageAnimatedStyle,
-          ]}
-        >
-          <Image
-            source={{ uri: item.image }}
-            style={styles.image}
-            contentFit="cover"
-            transition={500}
-          />
-        </Animated.View>
+      <Animated.View
+        style={[styles.imageContainer as ViewStyle, { backgroundColor: item.color + "20" }, imageAnimatedStyle as ViewStyle]}>
+        <Image
+          source={{ uri: item.image }}
+          style={styles.image as ImageStyle}
+          contentFit="cover"
+          transition={500}
+        />
+      </Animated.View>
 
-        <Animated.View style={textAnimatedStyle}>
-          <Text style={[styles.title, { color: item.color }]}>
-            {item.title}
-          </Text>
-          <Text style={styles.description}>{item.description}</Text>
-        </Animated.View>
-      </View>
-    );
-  };
+      <Animated.View style={textAnimatedStyle}>
+        <Text style={[styles.title, { color: item.color } as TextStyle]}>{item.title}</Text>
+        <Text style={styles.description as TextStyle}>{item.description}</Text>
+      </Animated.View>
+    </View>
+  );
 
   const handleNext = () => {
     if (currentIndex < slides.length - 1) {
-      flatListRef.current?.scrollToIndex({
-        index: currentIndex + 1,
-        animated: true,
-      });
+      flatListRef.current?.scrollToIndex({ index: currentIndex + 1, animated: true });
       setCurrentIndex(currentIndex + 1);
     } else {
-      // Navigate to login screen when onboarding is complete
       router.replace("/login");
     }
   };
 
-  const handleSkip = () => {
-    router.replace("/login");
-  };
+  const handleSkip = () => router.replace("/login");
 
   return (
     <View style={styles.container}>
@@ -204,13 +191,13 @@ export default function OnboardingScreen() {
         }}
       />
 
-      <View style={styles.pagination}>
+      <View style={styles.pagination as ViewStyle}>
         {slides.map((_, index) => (
           <View
             key={index}
             style={[
-              styles.paginationDot,
-              index === currentIndex ? styles.paginationDotActive : {},
+              styles.paginationDot as ViewStyle,
+              index === currentIndex && styles.paginationDotActive as ViewStyle,
               {
                 backgroundColor:
                   index === currentIndex ? slides[index].color : colors.support,
@@ -220,26 +207,25 @@ export default function OnboardingScreen() {
         ))}
       </View>
 
-      <View style={styles.buttonsContainer}>
+      <View style={styles.buttonsContainer as ViewStyle}>
         <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
-          <Text style={styles.skipButtonText}>Pular</Text>
+          <Text style={styles.skipButtonText as TextStyle}>Pular</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[
-            styles.nextButton,
-            { backgroundColor: slides[currentIndex].color },
-          ]}
+          style={[styles.nextButton as ViewStyle, { backgroundColor: slides[currentIndex].color }]}
           onPress={handleNext}
         >
-          <Text style={styles.nextButtonText}>
+          <Text style={styles.nextButtonText as TextStyle}>
             {currentIndex === slides.length - 1 ? "Começar" : "Próximo"}
           </Text>
         </TouchableOpacity>
       </View>
     </View>
   );
-}
+};
+
+export default OnboardingScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -284,7 +270,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: fontSize.xxl,
-    fontWeight: fontWeight.bold,
+    fontWeight: "bold",
     textAlign: "center",
     marginBottom: 16,
   },
@@ -336,7 +322,7 @@ const styles = StyleSheet.create({
   },
   nextButtonText: {
     fontSize: fontSize.md,
-    fontWeight: fontWeight.bold,
+    fontWeight: "bold",
     color: colors.textLight,
   },
 });
