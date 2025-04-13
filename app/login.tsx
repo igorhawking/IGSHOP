@@ -6,9 +6,12 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { router } from "expo-router";
 import { Image } from "expo-image";
+import { Eye, EyeOff, Mail, Lock } from "lucide-react-native";
 import { colors } from "../components/theme/colors";
 import { fontSize, fontWeight } from "../components/theme/typography";
 
@@ -17,6 +20,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [isEmailValid, setIsEmailValid] = useState(true);
   const [isPasswordValid, setIsPasswordValid] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
 
   const validateEmail = (text: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -32,7 +36,7 @@ export default function LoginScreen() {
   const handleLogin = () => {
     if (email && password && isEmailValid && isPasswordValid) {
       // Navigate to home screen
-      router.replace("/");
+      router.replace("/home");
     } else {
       // Show validation errors
       setIsEmailValid(email !== "" && isEmailValid);
@@ -43,111 +47,152 @@ export default function LoginScreen() {
   const handleSocialLogin = (provider: string) => {
     console.log(`Login with ${provider}`);
     // In a real app, implement social login
-    router.replace("/");
+    router.replace("/home");
+  };
+
+  const handleRegister = () => {
+    // Navigate to register screen
+    router.push("/register");
   };
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.contentContainer}
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <View style={styles.header}>
-        <Text style={styles.title}>Bem-vindo ao TudoGo</Text>
-        <Text style={styles.subtitle}>Entre para continuar</Text>
-      </View>
-
-      <View style={styles.socialButtons}>
-        <TouchableOpacity
-          style={styles.socialButton}
-          onPress={() => handleSocialLogin("Google")}
-        >
-          <Image
-            source={{
-              uri: "https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg",
-            }}
-            style={styles.socialIcon}
-          />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.socialButton}
-          onPress={() => handleSocialLogin("Apple")}
-        >
-          <Image
-            source={{
-              uri: "https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg",
-            }}
-            style={styles.socialIcon}
-          />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.socialButton}
-          onPress={() => handleSocialLogin("Facebook")}
-        >
-          <Image
-            source={{
-              uri: "https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg",
-            }}
-            style={styles.socialIcon}
-          />
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.divider}>
-        <View style={styles.dividerLine} />
-        <Text style={styles.dividerText}>ou</Text>
-        <View style={styles.dividerLine} />
-      </View>
-
-      <View style={styles.form}>
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>E-mail</Text>
-          <TextInput
-            style={[styles.input, !isEmailValid && styles.inputError]}
-            placeholder="seu@email.com"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            value={email}
-            onChangeText={validateEmail}
-          />
-          {!isEmailValid && (
-            <Text style={styles.errorText}>E-mail inválido</Text>
-          )}
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.contentContainer}
+      >
+        <View style={styles.header}>
+          <Text style={styles.title}>Bem-vindo ao TudoGo</Text>
+          <Text style={styles.subtitle}>Entre para continuar</Text>
         </View>
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Senha</Text>
-          <TextInput
-            style={[styles.input, !isPasswordValid && styles.inputError]}
-            placeholder="Sua senha"
-            secureTextEntry
-            value={password}
-            onChangeText={validatePassword}
-          />
-          {!isPasswordValid && (
-            <Text style={styles.errorText}>
-              A senha deve ter pelo menos 6 caracteres
-            </Text>
-          )}
+        <View style={styles.socialButtons}>
+          <TouchableOpacity
+            style={styles.socialButton}
+            onPress={() => handleSocialLogin("Google")}
+          >
+            <Image
+              source={{
+                uri: "https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg",
+              }}
+              style={styles.socialIcon}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.socialButton}
+            onPress={() => handleSocialLogin("Apple")}
+          >
+            <Image
+              source={{
+                uri: "https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg",
+              }}
+              style={styles.socialIcon}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.socialButton}
+            onPress={() => handleSocialLogin("Facebook")}
+          >
+            <Image
+              source={{
+                uri: "https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg",
+              }}
+              style={styles.socialIcon}
+            />
+          </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.forgotPassword}>
-          <Text style={styles.forgotPasswordText}>Esqueceu sua senha?</Text>
-        </TouchableOpacity>
+        <View style={styles.divider}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>ou</Text>
+          <View style={styles.dividerLine} />
+        </View>
 
-        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-          <Text style={styles.loginButtonText}>Entrar</Text>
-        </TouchableOpacity>
-      </View>
+        <View style={styles.form}>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>E-mail</Text>
+            <View
+              style={[styles.inputWrapper, !isEmailValid && styles.inputError]}
+            >
+              <Mail
+                size={20}
+                color={colors.textSecondary}
+                style={styles.inputIcon}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="seu@email.com"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                value={email}
+                onChangeText={validateEmail}
+              />
+            </View>
+            {!isEmailValid && (
+              <Text style={styles.errorText}>E-mail inválido</Text>
+            )}
+          </View>
 
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>Não tem uma conta?</Text>
-        <TouchableOpacity>
-          <Text style={styles.signupText}>Cadastre-se</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Senha</Text>
+            <View
+              style={[
+                styles.inputWrapper,
+                !isPasswordValid && styles.inputError,
+              ]}
+            >
+              <Lock
+                size={20}
+                color={colors.textSecondary}
+                style={styles.inputIcon}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Sua senha"
+                secureTextEntry={!showPassword}
+                value={password}
+                onChangeText={validatePassword}
+              />
+              <TouchableOpacity
+                style={styles.passwordToggle}
+                onPress={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? (
+                  <EyeOff size={20} color={colors.textSecondary} />
+                ) : (
+                  <Eye size={20} color={colors.textSecondary} />
+                )}
+              </TouchableOpacity>
+            </View>
+            {!isPasswordValid && (
+              <Text style={styles.errorText}>
+                A senha deve ter pelo menos 6 caracteres
+              </Text>
+            )}
+          </View>
+
+          <TouchableOpacity style={styles.forgotPassword}>
+            <Text style={styles.forgotPasswordText}>Esqueceu sua senha?</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+            <Text style={styles.loginButtonText}>Entrar</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Não tem uma conta?</Text>
+          <TouchableOpacity onPress={handleRegister}>
+            <Text style={styles.signupText}>Cadastre-se</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -187,6 +232,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginHorizontal: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   socialIcon: {
     width: 24,
@@ -218,16 +268,29 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginBottom: 8,
   },
-  input: {
+  inputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
     height: 56,
     borderWidth: 1,
     borderColor: colors.support,
     borderRadius: 8,
     paddingHorizontal: 16,
+  },
+  inputIcon: {
+    marginRight: 12,
+  },
+  input: {
+    flex: 1,
+    height: 56,
     fontSize: fontSize.md,
+    color: colors.textPrimary,
   },
   inputError: {
     borderColor: colors.error,
+  },
+  passwordToggle: {
+    padding: 4,
   },
   errorText: {
     color: colors.error,

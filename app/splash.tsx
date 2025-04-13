@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Dimensions } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { colors } from "../components/theme/colors";
@@ -13,7 +13,11 @@ import Animated, {
   Easing,
   interpolateColor,
   withRepeat,
+  runOnJS,
 } from "react-native-reanimated";
+import { ShoppingBag, Pizza, ScanLine, Briefcase } from "lucide-react-native";
+
+const { width, height } = Dimensions.get("window");
 
 export default function SplashScreen() {
   // Animation values using Reanimated
@@ -22,6 +26,8 @@ export default function SplashScreen() {
   const taglineOpacity = useSharedValue(0);
   const gradientProgress = useSharedValue(0);
   const exitProgress = useSharedValue(0);
+  const iconsOpacity = useSharedValue(0);
+  const iconsScale = useSharedValue(0.5);
 
   // Animated styles
   const logoAnimatedStyle = useAnimatedStyle(() => {
@@ -47,6 +53,18 @@ export default function SplashScreen() {
     };
   });
 
+  const iconsAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: iconsOpacity.value,
+      transform: [
+        { scale: iconsScale.value },
+        {
+          translateY: withTiming(exitProgress.value * -100, { duration: 500 }),
+        },
+      ],
+    };
+  });
+
   const gradientAnimatedStyle = useAnimatedStyle(() => {
     return {
       transform: [
@@ -54,6 +72,10 @@ export default function SplashScreen() {
       ],
     };
   });
+
+  const navigateToOnboarding = () => {
+    router.replace("/onboarding");
+  };
 
   useEffect(() => {
     // Animate logo fade in and scale up
@@ -69,16 +91,33 @@ export default function SplashScreen() {
 
     // Animate tagline fade in after logo
     taglineOpacity.value = withDelay(
-      1000,
+      800,
       withTiming(1, {
         duration: 600,
         easing: Easing.inOut(Easing.ease),
       }),
     );
 
+    // Animate icons fade in and scale up after tagline
+    iconsOpacity.value = withDelay(
+      1400,
+      withTiming(1, {
+        duration: 600,
+        easing: Easing.inOut(Easing.ease),
+      }),
+    );
+
+    iconsScale.value = withDelay(
+      1400,
+      withTiming(1, {
+        duration: 600,
+        easing: Easing.out(Easing.back(1.2)),
+      }),
+    );
+
     // Animate gradient
     gradientProgress.value = withRepeat(
-      withTiming(1, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
+      withTiming(1, { duration: 3000, easing: Easing.inOut(Easing.ease) }),
       -1, // Infinite repetitions
       true, // Reverse
     );
@@ -88,10 +127,10 @@ export default function SplashScreen() {
       // Start exit animation
       exitProgress.value = withTiming(1, { duration: 500 }, (finished) => {
         if (finished) {
-          router.replace("/onboarding");
+          runOnJS(navigateToOnboarding)();
         }
       });
-    }, 2500);
+    }, 3000);
 
     return () => clearTimeout(timer);
   }, []);
@@ -115,6 +154,30 @@ export default function SplashScreen() {
         <Animated.Text style={[styles.tagline, taglineAnimatedStyle]}>
           Tudo o que você precisa, em um só app
         </Animated.Text>
+
+        <Animated.View style={[styles.iconsContainer, iconsAnimatedStyle]}>
+          <View
+            style={[styles.iconCircle, { backgroundColor: colors.primary }]}
+          >
+            <Pizza size={24} color="white" />
+          </View>
+          <View
+            style={[styles.iconCircle, { backgroundColor: colors.secondary }]}
+          >
+            <ShoppingBag size={24} color="white" />
+          </View>
+          <View style={[styles.iconCircle, { backgroundColor: colors.action }]}>
+            <ScanLine size={24} color="white" />
+          </View>
+          <View
+            style={[
+              styles.iconCircle,
+              { backgroundColor: colors.backgroundDark },
+            ]}
+          >
+            <Briefcase size={24} color="white" />
+          </View>
+        </Animated.View>
       </LinearGradient>
     </Animated.View>
   );
@@ -125,6 +188,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: colors.primary, // Fallback color
   },
   gradientContainer: {
     flex: 1,
@@ -141,11 +205,35 @@ const styles = StyleSheet.create({
     fontWeight: fontWeight.bold,
     color: "white",
     textAlign: "center",
+    textShadowColor: "rgba(0, 0, 0, 0.3)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
   tagline: {
     fontSize: fontSize.lg,
     color: "white",
     textAlign: "center",
     marginTop: 16,
+    marginBottom: 32,
+    maxWidth: width * 0.8,
+  },
+  iconsContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 16,
+  },
+  iconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: "center",
+    alignItems: "center",
+    marginHorizontal: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
 });
